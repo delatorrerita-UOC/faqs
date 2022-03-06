@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link href="./css/estilos.css" rel="stylesheet">
+   <title>FORMA DE REALIZAR LAS ENTREGAS</title>
+</head>
+<body>
+   <h1>Forma de entrega de los productos</h1>
+   <p><strong>Paso 5.</strong> Creación de las tablas de la Base de Datos y relaciones</p>
+   <h3>1. Creación de tablas. Ejemplo:</h3>
+   <table>
+      <tr><th width="50%">Sentencia</th><th>Justificación</th></tr>
+      <tr><td>
+         <code>
+            CREATE TABLE alergeno (<br>
+            &nbsp;&nbsp;alergeno varchar(30) PRIMARY KEY<br>
+            );
+         </code>
+      </td>
+      <td>
+         El campo es PRIMARY KEY para que el contenido del campo pueda relacionarse con la tabla <b>alergenos_producto</b>. Al ser clave primaria, no hace falta la cláusula UNIQUE.
+      </td>
+      </tr>
+   </table>
+   <p>...etc...</p>
+   <h3>2. Creación de las relaciones entre tablas. Ejemplo:</h3>
+   <p>Recordar que cada relación <mark><strong>funciona de manera independiente</strong></mark> dependiendo de cómo se hayan definido las cláusulas ON DELETE y ON UPDATE.</p>
+   <table width="100%">
+      <tr><th width="50%">Sentencia</th><th>Justificación</th></tr>
+      <tr><td>
+         <code>
+            ALTER TABLE <strong>alergeno_producto</strong><br>
+            ADD FOREIGN KEY (codigo_producto)<br> 
+            REFERENCES <strong>producto</strong>(codigo_producto)<br>
+            ON DELETE restrict<br>
+            ON UPDATE cascade;
+         </code>
+      </td>
+      <td>
+         Creamos la relación entre las tablas producto y alergeno producto,
+         estableciendo ON DELETE en <strong>restrict</strong> de manera que no se pueda eliminar un alergeno si el mismo existe en la tabla <strong>producto</strong> y ON UPDATE en <strong>cascade</strong> para que el nombre del alergeno cambie en todos los productos que lo contengan en caso de ser actualizado.
+      </td>
+      </tr>
+   </table>
+   <p><img class="t90 borde" src="./img/OnUpdateOnDelete.png"></p>
+
+   <hr>
+   <p><strong>Paso 6</strong>. Las entregas serán realizadas de esta forma prácticamente en todos los productos:<br>
+   <i>Realizar las siguientes modificaciones a la estructura de la base de datos, anotar la sentencia SQL y su salida en un documento:</i></p>
+   <h3>Ejemplo de entrega de una respuesta justificada y con su salida a continuación:</h3>
+   <hr>
+   <p class="francesa">3.1. Cambia el tipo de datos del campo <b>unidad</b> de la tabla <b>Producto</b> a <b>enum</b>. Los valores que podrá recibir el campos son: <em>Kilogramos, litros, unidades.</em></p>
+   <h3 class="dentro">Justificación:</h3>
+   <p class="dentro">Dado que se requiere de una modificación en la tabla, la <em>instrucción</em> que deberá utilizarse será <b>ALTER TABLE</b>. <br>Para cambiar un tipo de campos en una tabla, se usa la <em>cláusula</em> <b>MODIFY</b>.</p>
+   <h3 class="dentro">Sentencia SQL:</h3>
+   <blockquote><code>
+   USE ICX0_P3_00; -- número de vuestra BBDD<br>
+   ALTER TABLE producto MODIFY unidad enum ('Kilogramos', 'litros', 'unidades');
+   </code></blockquote>
+   <h3 class="dentro">Salida en MySQL Workbench:</h3>
+   <p class="dentro"><img class="t70 borde" src="./img/output.png"/></p>
+
+</body>
+</html>
