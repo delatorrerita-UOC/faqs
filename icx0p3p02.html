@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<title>Feedback P2</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+		*{font-family: Nunito, Roboto, Helvetica, sans serif; font-size: 14px; letter-spacing: 0.3px;}
+		body{padding: 0 10em 5em 10em;}
+		h1{font-size: 130%; font-weight: 100; text-align: left; color: #5D6D7E; margin: 2em 0;}
+		h2{font-size: 115%; font-weight: 100; text-align: left; color: #5D6D7E; }
+		ol{list-style-type: lower-alpha; }
+		ol li {margin-bottom: 0.5em;}
+		li.azul {color: #00008B; font-style: italic; font-family: Georgia, serif; padding-top: 0.1em; margin-top: 1em; border-top: 1px blue solid }
+		pre{text-align: left; border: 1px solid black;}
+		code {color:blue; font-family: consolas; }
+		code.block {display:block; margin-bottom: 1em;}
+		p.verde{color: green;}
+		span.rojo {color: red;}
+	</style>
+</head>
+
+<body>
+
+<h1>(5)&nbsp;&nbsp;&nbsp;Realizar las siguientes consultas</h1>
+<ol>
+	<li class="azul">Indicar el <b>número de ingredientes</b> registrados en la Base de Datos.</li>
+	<code class="block";>
+		SELECT COUNT(*) AS Num_Ingredientes FROM INGREDIENTES; 
+	</code>
+	<li class="azul">Listar todos los productos <b>ordenados por la categoría</b> a la cual pertenecen.</li>
+	<p>Usamos las tablas PRODUCTO y CATEGORIA</p>
+	<p class="verde">CATEGORIA (idCategoría, Categoría)</p>
+	<p class="verde">PRODUCTO (Codigo_Producto, Nombre, unidad, Alerta_Stock, idCategoría)</br>
+	donde {idCategoría} referencia CATEGORIA</p>
+
+	<code class="block";>
+		SELECT c.Categoria, p.Nombre </br>
+		FROM PRODUCTO p INNER JOIN CATEGORIAS c </br>
+		ON p.idCategorIa = c.idCategoría</br>
+		ORDER BY c.Categoria;
+	</code>	
+	
+	<li class="azul">Mostrar en el listado anterior la <b>categoría, código, nombre y alerta_stock.</b></li>
+	
+	<code class="block";>
+		SELECT c.Categoria, p.Codigo_Producto, p.Nombre, p.Alerta_Stock </br>
+		FROM PRODUCTO p INNER JOIN CATEGORIAS c </br>
+		ON p.idCategorIa = c.idCategoría</br>
+		ORDER BY c.Categoria;
+	</code>		
+	
+	<li class="azul">Hacer una relación de los <b>proveedores de Verduras y Hortalizas.</b></li>
+	
+	<p>Usamos las tablas PROVEEDOR y CATEGORIA.</p>
+	<p class="verde">PROVEEDOR (NIF, Empresa, contacto, teléfonos, dirección, mail, web, registro, idCategoría)</br>
+		donde {idCategoría} referencia CATEGORIA</p>
+	<p class="verde">CATEGORIA (idCategoría, Categoría)</p>
+	
+	<p>La categoría <b>Verduras y Hortalizas</b> tiene el código 7</p>
+
+	<code class="block";>
+		SELECT c.idCategoría, c.Categoria, p.NIF, p.Empresa</br>
+		FROM PROVEEDOR AS p INNER JOIN CATEGORIAS AS c </br>
+		ON p.idCategoria = c.idCategoría</br>
+		WHERE c.idCategoría=7;
+	</code>		
+	
+	<li class="azul">Listar las <b>compras</b> realizadas <b>durante el mes en curso</b></li>
+	<p>Usamos las tablas COMPRAS_PRODUCTO y PRODUCTO</p>
+
+	<p class="verde">PRODUCTO (Codigo_Producto, Nombre, unidad, Alerta_Stock, idCategoría)</br/>
+	donde {idCategoría} referencia CATEGORIA</p>
+	
+	<p class="verde">COMPRAS_PRODUCTO (Codigo_Producto, NIF, fecha, cantidad, precio, IVA, caducidad)</br>
+	donde {Codigo_Producto} referencia PRODUCTO</br>
+	donde {NIF} referencia PROVEEDOR</p>
+
+	<p>Debemos filtrar por MES y AÑO de lo contrario se filtraría por el mismo mes de todos los años.</p>
+
+	<code class="block";>
+		SELECT p.Codigo_Producto, p.Nombre, cp.Fecha
+		FROM PRODUCTO p INNER JOIN COMPRAS_PRODUCTO AS cp </br>
+		ON p.Codigo_Producto = cp.Codigo_Producto</br>
+		WHERE MONTH([Fecha])=MONTH(NOW()) AND YEAR(Fecha)=YEAR(NOW())</br>
+		ORDER BY cp.Fecha;
+	</code>		
+	
+	<li class="azul">Indicar el <b>número de platos de ensalada registrados</b> en el menú.</li>
+	<p>Acá usaremos las tablas PLATO y TIPO_PLATOS</p>
+
+	<p class="verde">TIPO_PLATOS (id_Tipo, tipo_de_plato)</p>
+	<p class="verde">PLATO (Codigo_Plato, NombrePlato, tipo_plato, Elaboración, PVP, IVA, en_menú)</br>
+		donde {id_Tipo} referencia TIPO_PLATOS</p>
+
+	<p>El tipo de plato <b>Ensaladas</b> tiene el código 3</p>
+	
+	<code class="block";>
+		SELECT tp.id_Tipo, tp.tipo_de_plato, Count(p.Codigo_Plato) AS Ofertados</br>
+		FROM TIPO_PLATOS AS tp INNER JOIN PLATO AS p </br>
+		ON tp.id_Tipo = p.tipo_de_plato</br>
+		GROUP BY tp.id_Tipo, tp.tipo_de_plato</br>
+		HAVING tp.id_Tipo=3;
+	</code>	
+
+	<li class="azul">Mostrar aquellos <b>proveedores</b>  cuyo nombre comience por la letra <b>M</b>.</li>
+	<p>Usamos la tabla PROVEEDOR</p>
+	<p class="verde">PROVEEDOR (NIF, Empresa, contacto, teléfonos, dirección, mail, web, registro, idCategoría)</br>
+		donde {idCategoría} referencia CATEGORIA</p>	
+	
+	<code class="block";>
+		SELECT NIF, Empresa</br>
+		FROM PROVEEDOR</br>
+		WHERE Empresa Like "M%";		
+	</code>
+	
+	<li class="azul">Mostrar los <b>productos</b> que contengan <b>alérgenos</b>.</li>
+	<p>En este caso, usaremos las tablas: PRODUCTO, ALERGENO y ALERGENOS_PRODUCTO </p>
+	<p class="verde">PRODUCTO (Codigo_Producto, Nombre, unidad, Alerta_Stock, idCategoría)</br/>
+					donde {idCategoría} referencia CATEGORIA</p>
+	<p class="verde">ALERGENO (Alergeno)</p>
+	<p class="verde">ALERGENOS_PRODUCTO (Codigo_Producto, Alergeno)</br>
+					donde {Codigo_Producto} referencia PRODUCTO</br>
+					donde {Alergeno} referencia ALERGENO</p>
+	
+	<code class="block";>
+		SELECT p.Codigo_Producto, p.nombre, a.alergeno</br>
+		FROM ALERGENO as a INNER JOIN (PRODUCTO as p INNER JOIN ALERGENO_PRODUCTO as ap</br>
+		ON p.Codigo_Producto = ap.Codigo_Producto) </br>
+		ON a.alergeno = ap.alergeno</br>
+		ORDER BY p.Codigo_Producto;
+	</code>
+	
+	<li class="azul">Reportar el <b>total de compras en €</b> realizadas <b>a cada proveedor</b>.</br>
+		La consulta deberá tener los siguientes campos: <b>Empresa, Número de productos y Total Euros</b>.</li>
+		
+	<p>Usamos las tablas PROVEEDOR y COMPRAS_PRODUCTO</p>
+
+	<p class="verde">PROVEEDOR (NIF, Empresa, contacto, teléfonos, dirección, mail, web, registro, idCategoría)</br>
+		donde {idCategoría} referencia CATEGORIA</p>	
+	<p class="verde">COMPRAS_PRODUCTO (Codigo_Producto, NIF, fecha, cantidad, precio, IVA, caducidad)</br>
+		donde {Codigo_Producto} referencia PRODUCTO</br>
+		donde {NIF} referencia PROVEEDOR</p>
+
+	<code class="block";>
+	SELECT p.Empresa, COUNT(cp.Codigo_Producto) AS 'Num Productos', SUM(cp.cantidad*cp.precio) AS 'Total Euros' </br>
+	FROM PROVEEDOR AS p INNER JOIN COMPRAS_PRODUCTO AS cp </br>
+	ON p.NIF = cp.NIF</br>
+	GROUP BY p.Empresa;</br>
+	</code>
+	
+	<p>Para formatear: CONCAT(FORMAT(CANTIDAD*PRECIO,2),'€') AS TOTAL</p>
+
+	<li class="azul">Indicar aquellos <b>productos que han cambiado de precio</b>.</li>
+	<p>Recordemos que en el punto 6 del PRODUCTO 1, se nos pedía agregar dos nuevos campos en la tabla PRODUCTO:
+		Stock y Precio_Compra</p>
+	<p>Usamos las tablas PRODUCTO y COMPRAS_PRODUCTO</p>
+
+	<p class="verde">PRODUCTO (Codigo_Producto, Nombre, unidad, Alerta_Stock, idCategoría, 
+					<span class="rojo"> Stock, Precio_Compra</span>)</br/>
+					donde {idCategoría} referencia CATEGORIA</p>	
+
+	<p class="verde">COMPRAS_PRODUCTO (Codigo_Producto, NIF, fecha, cantidad, precio, IVA, caducidad)</br>
+		donde {Codigo_Producto} referencia PRODUCTO</br>
+		donde {NIF} referencia PROVEEDOR</p>
+		
+	<code class="block";>
+		SELECT c.Codigo_Producto, p.nomProducto</br>
+		FROM PRODUCTO AS p INNER JOIN COMPRAS_PRODUCTO AS c </br>
+		ON p.Codigo_Producto = c.Codigo_Producto</br>
+		WHERE c.precio &lt;&gt; p.Precio_compra </br>
+		GROUP BY c.Codigo_Producto, p.nomProducto;
+	</code>
+
+	<li class="azul">Indicar la cantidad de <b>platos ofertados por tipo de plato</b>.</li>
+	<p>Usamos las tablas TIPO_PLATOS y PLATO</p>
+	
+	<p class="verde">TIPO_PLATOS (id_Tipo, tipo_de_plato)</p>
+	<p class="verde">PLATO (Codigo_Plato, NombrePlato, tipo_plato, Elaboración, PVP, IVA, en_menú)</br>
+		donde {id_Tipo} referencia TIPO_PLATOS</p>
+
+	<code class="block";>
+		SELECT tp.tipo_de_plato, COUNT(p.Codigo_Plato) AS 'Platos Ofertados'</br>
+		FROM TIPO_PLATOS tp INNER JOIN PLATO p
+		ON tp.id_Tipo = p.tipo_de_plato
+		GROUP BY tp.tipo_de_plato;
+	</code>
+
+	<li class="azul">Indicar cuántos platos registrados <b>no se están ofertando</b> en Menú.</li>
+	<p>Usamos la tabla PLATO</p>
+	
+	<p class="verde">PLATO (Codigo_Plato, NombrePlato, tipo_plato, Elaboración, PVP, IVA, en_menu)</br>
+		donde {id_Tipo} referencia TIPO_PLATOS</p>	
+
+	<code class="block";>
+		SELECT Codigo_Plato, NombrePlato, tipo_plato, en_menu</br>
+		FROM PLATO</br>
+		WHERE  en_menu = False;
+	</code>
+
+	<li class="azul">Contar el <b>total de donaciones por producto</b>.</li>
+	<p>Usamos las tablas PRODUCTO y DETALLE DONACION</p>
+	
+	<p class="verde">PRODUCTO (Codigo_Producto, Nombre, unidad, Alerta_Stock, idCategoría)</br/>
+		donde {idCategoría} referencia CATEGORIA</p>	
+	<p class="verde">DETALLE_DONACION (fecha, línea, codigo_producto, cantidad, observaciones)</br>
+		donde {Codigo_Producto} referencia PRODUCTO</p>
+
+	<code class="block";>
+		SELECT p.Codigo_Producto, p.nomProducto, Count(d.Fecha) AS Donaciones, Sum(d.cantidad) AS Productos</br>
+		FROM PRODUCTO AS p INNER JOIN DETALLE_DONACION AS d </br>
+		ON p.Codigo_Producto = d.Codigo_Producto</br>
+		GROUP BY p.Codigo_Producto, p.nomProducto;
+	</code>
+	<h2>CONSULTAS PROPIAS . . .</h2>
+	<li class="azul">Formular una consulta que tenga una agrupación con <code>GROUP BY</code> </li>
+	<li class="azul">Formular una consulta que tenga una agrupación con <code>GROUP BY</code> 
+		y un filtraje con <code>HAVING</code> .</li>
+</ol>
+<h1>(6)&nbsp;&nbsp;&nbsp;Realizar las siguientes modificaciones en los datos insertados </h1>
+<ol>
+	<li class="azul">Actualizar el campo Porcentaje_Merma con la división de la Cantidad_Neta 
+		entre la Cantidad_Bruta en la tabla INGREDIENTES_PLATO.</li>
+
+	<p class="verde">INGREDIENTES_PLATO (Codigo_Plato, Codigo_Producto, Cant_Bruta, Cant_Neta, Unidad)</br>
+		donde {Codigo_Plato} referencia PLATOS</p>
+		
+		<code class="block";>	
+			UPDATE INGREDIENTES_PLATO SET PORCENTAJE_MERMA = CANT_BRUTA / CANT_NETA; 
+		</code>		
+		
+	<li class="azul">Cambiar la fecha de caducidad de los productos, sumándole 7 días.</li>	
+		<code class="block";>	
+			UPDATE COMPRAS_PRODUCTO SET caducidad = DATE_ADD(caducidad, INTERVAL 7 DAY);
+		</code>		
+	<li class="azul">Actualizar el PVP de los platos, aumentando en un 2%.</li>	
+		<code class="block";>	
+			UPDATE PLATOS SET PVP = PVP * 1.02;
+		</code>
+	<li class="azul">Eliminar aquellas CATEGORÍAS que no tengan PROVEEDORES.</li>
+		<code class="block";>	
+			DELETE FROM CATEGORIA WHERE id_categoria 
+			NOT IN (SELECT id_categoria FROM PROVEEDOR); 
+		</code>
+	<li class="azul">Borrar los productos elaborados que nunca se hayan vendido.</br>
+				    Para ello deberás revisar la tabla COMANDA_ELABORADOS.</li>	
+		<p>Si la cláusula ON DELETE entre PRODUCTO y ELABORADO está bien, (CASCADE),<br>el producto se eliminará
+		automáticamente de ambas tablas al borrarla de PRODUCTO</p>
+		<code class="block";>	
+			DELETE FROM PRODUCTO 
+			WHERE Codigo_Producto NOT IN (SELECT Codigo_Producto FROM COMANDA_ELABORADOS); 			
+		</code>		
+</ol>
