@@ -241,9 +241,9 @@
 		</code>
 	<li class="azul">Eliminar aquellas CATEGORÍAS que no tengan PROVEEDORES.</li>
 		<code class="block";>	
-			DELETE FROM categoria 
-			WHERE id_categoria NOT IN (SELECT id_categoria FROM PROVEEDOR)
-			AND id_categoria NOT IN (SELECT DISTINCT id_categoria FROM productos);; 
+			DELETE FROM categoria <br>
+			WHERE id_categoria NOT IN (SELECT id_categoria FROM PROVEEDOR)<br>
+			AND id_categoria NOT IN (SELECT DISTINCT id_categoria FROM productos); 
 		</code>
 	<li class="azul">Borrar los productos elaborados que nunca se hayan vendido.</br>
 				    Para ello deberás revisar la tabla COMANDA_ELABORADOS.</li>	
