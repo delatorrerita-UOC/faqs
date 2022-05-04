@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<title>Feedback P4</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+		*{font-family: Nunito, Roboto, Helvetica, sans serif; font-size: 14px; letter-spacing: 0.3px;}
+		body{padding: 0 10em 5em 10em;}
+		h1{font-size: 130%; 
+			font-weight: 200; 
+			text-align: left; 
+			color: #5D6D7E; 
+			margin: 2em 0;
+			text-indent: -30px;
+			padding-left: 35px
+		}
+		}
+		h2{font-size: 115%; font-weight: 100; text-align: left; color: #5D6D7E; }
+		ol{list-style-type: lower-alpha; }
+		ol li {margin-bottom: 0.5em;}
+		li.azul {color: #00008B; font-style: italic; font-family: Georgia, serif; line-height: 1.5; padding-top: 0.1em; margin-top: 1em; border-top: 1px blue solid }
+		pre{text-align: left; border: 1px solid black;}
+		code {color:blue; font-family: consolas; }
+		code.block {display:block; margin-bottom: 1em;}
+		p.verde{color: green;}
+		span.rojo {color: red;}
+		table, th, td {
+ 			border: 1px solid gray;
+			vertical-align: top;
+		}
+
+	</style>
+</head>
+
+<body>
+
+<h1>(4)&nbsp;&nbsp;Realizar las siguientes creaciones de usuarios y privilegios
+	y anotar la sentencia SQL y su salida en un documento<br>(PARTE 1)</h1>
+<ol>
+	<li class="azul">Crear el usuario administrador llamado <b>admin</b>, que tendrá <b>todos los
+		privilegios</b> sobre la base de datos de nuestro proyecto.</li>
+
+	<p>Para crear un usuario se utiliza el la instrucción <code>CREATE USER</code></p>
+	<p><code>CREATE USER</code>, permite crear un usuario y darle permisos para conectarse desde un ordenador específico o desde cualquier ordenador. Así:</p>
+
+	<code class="block">CREATE USER 'admin'@'localhost' IDENTIFIED BY 'password';</code>
+	<p>Le permite acceder a la Base de Datos <b>sólo</b> desde el servidor local, mientras que:</p>
+
+	<code class="block">CREATE USER 'admin'@'%' IDENTIFIED BY 'password';</code>
+	<p>Le permite acceder desde cualquier ordenador.</p>
+
+	<p>Para otorgarle <b>todos los privilegios</b> al <b>admin</b> sobre la rosticería la instrucción es:</p>
+	<code>GRANT ALL PRIVILEGES ON rosticeria.* TO 'admin'@'%';</code>
+	
+	<p>Además, para que el usuario <b>admin</b> pueda crear usuario a su vez y otorgarle permisos, se debe agregar la cláusula 
+		<code>WITH GRANT OPTIONS</code>. Es decir, la instrucción completa debería lucir de la siguiente manera:</p>
+
+	<code>GRANT ALL PRIVILEGES ON rosticeria.* TO 'admin'@'%' <b>WITH GRANT OPTIONS</b>;</code>
+		
+	<p>Toda respuesta que no contemple esta cláusula está por lo tanto incompleta, ya que imposibilita al usuario <b>admin</b> a crear usuarios y otorgar permisos.</p><br>
+
+	<li class="azul">El usuario administrador (<b>admin</b>) crea 2 usuarios más, uno llamado <b>encargado</b>
+		y el otro llamado <b>camarero</b>.</li>
+	<p>Primero hay que conectarse como el usuario <b>admin</b> para proceder a realizar este punto.</p>
+	<code class="block";>
+		CREATE USER 'encargado'@<span class="rojo">'localhost'</span> IDENTIFIED BY 'password';<br>
+		CREATE USER 'camarero'@<span class="rojo">'localhost'</span> IDENTIFIED BY 'password';
+	</code>	
+	<p>El servidor depende del ordenador desde el cual acceden estos usuarios.</p>
+
+	<li class="azul">A partir de los dos usuarios nuevos creados por el administrador,
+		pensar y dar los privilegios que creas oportunos sobre las tablas y
+		atributos de la base de datos. <b>Justificar la respuesta.</b></li>
+	<p>Esta respuesta depende de cómo haya previsto el sistema cada grupo. Lo más importante aquí es <b>la justificación</b>.</p>
+	<p>En todo caso, la sentencia para mostrar los permisos de un usuario es: <code>SHOW GRANTS FOR usuario;</code></p> 
+	
+	<li class="azul">Realizar una tabla ACL (Access Control Lists) con control de acceso
+		discrecional (DAC), dónde pueda verse la distribución de privilegios para cada usuario:</li>
+	
+	<p>Ejemplo de tabla ACL</p>
+
+	<table>
+		<tr>
+			<th>Usuario</th>
+			<th>admin</th>
+			<th>encargado</th>
+			<th>camarero</th>
+		</tr>
+		<tr>
+			<td><b>Nivel Control 1</b><br>Privilegios totales</td>
+			<td>Puede actuar sobre toda la BBDD. Puede gestionar, crear y eliminar usuarios</td>
+			<td>-</td>
+			<td>-</td>
+		</tr>
+		<tr>
+			<td><b>Nivel Control 2</b><br>Privilegios sobre la Base de Datos</td>
+			<td>Puede actuar sobre toda la BBDD y sus tablas.<br>Puede crear nuevos objetos en la BBDD</td>
+			<td>-</td>
+			<td>-</td>
+		</tr>
+		<tr>
+			<td><b>Nivel Control 3</b><br>Privilegios de actualización sobre Tablas y Vistas<br></td>
+			<td>Puede realizar todas las operaciones de actualización sobre tablas y vistas.<br>
+				Puede ejecutar Procedimientos Almacenados.
+			</td>
+			<td><em>Depende del grupo de proyecto</em></td>
+			<td><em>Depende del grupo de proyecto</em></td>
+		</tr>
+		<tr>
+			<td><b>Nivel Control 4</b><br>Privilegios de consulta sobre Tablas y Vistas</td>
+			<td>Puede realizar todas las operaciones de consulta sobre tablas y vistas.</td>
+			<td><em>Depende del grupo de proyecto</em></td>
+			<td><em>Depende del grupo de proyecto</em></td>
+		</tr>
+		<tr>
+			<td><b>Nivel Control 5</b><br>Privilegios de consulta sobre columnas de Tablas y Vistas solamente.</td>
+			<td>Puede realizar todas las operaciones de consulta.</td>
+			<td><em>Depende del grupo de proyecto</em></td>
+			<td><em>Depende del grupo de proyecto</em></td>
+		</tr>		
+	</table>
+	<p>Enlace: <a target="_blank" href="https://dev.mysql.com/doc/refman/8.0/en/privileges-provided.html">
+		https://dev.mysql.com/doc/refman/8.0/en/privileges-provided.html</a></p>
+	<br>
+	<li class="azul">Realizar una infografía con los <b>principales puntos de la normativa de protección
+		de datos actual</b>.</li>
+	<p>Se trataba de hacer una infografía explicando brevemente estos puntos:</p>
+	
+	<ul>
+		<li>Consentimiento de los clientes</li>
+		<li>Obligación de informar</li>
+		<li>Nombrar un Delegado de Protección de Datos (DPD)</li>
+		<li>Firmar contrato con Encargados del tratamiento</li>
+		<li>Contrato de confidencialidad con empleados</li>
+		<li>Registro de actividades de tratamiento</li>
+		<li>Análisis de riesgos</li>
+		<li>Notificación de incidentes de seguridad</li>
+		<li>Evaluación de impacto</li>
+		<li>Privacidad desde el diseño y por defecto</li>
+		<li>Lo que debe tener una Página web</li>
+		<li>Nuevos derechos de los usuarios</li>
+	</ul>
+	<br>
+	<li class="azul">A partir de la normativa legal vigente, indicar que términos de nuestro proyecto
+		se ven afectados o podrían ser susceptibles de serlo (PARTE 2).</li>
+
+		<p>La base de datos no guarda datos personales de clientes, no obstante sí que guarda datos de los proveedores. 
+			Para evitar problemas derivados del tratamiento de los mismo se les puede pedir <b>consentimiento
+			expreso</b> para el tratamiento de sus datos</p>
+		
+		<p>Para cumplir con los principios de información, transparencia, claridad y lealtad, se debe informar</p>
+		<p>
+		• El nombre y datos de contacto del responsable del tratamiento<br>
+		• El nombre del Delegado de Protección de Datos<br>
+		• La finalidad del tratamiento<br>
+		• La descripción de las categorías del interesado y de los datos tratados<br>
+		• Las posibles cesiones de datos a terceros<br>
+		• La finalidad de la recogida de datos, es decir para que se van a tratar sus datos, y para que se usan.<br>
+		• Cómo se ejercitan los derechos de Acceso, Rectificación, Cancelación, Oposición, Limitación 
+		y la Portabilidad de los mismos.</p>
+		<p>Asimismo, los propietarios de los datos serán informados del tiempo que se guardaran los datos en la base de datos</p>
+
+		<p>En caso que un error en el tratamiento de los datos que permitiese que se filtrasen los mismos, lo primero sería notificar a los afectados el evento (<b>notificación de brechas de seguridad.</b>)</p>
+
+</ol>
