@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<title>Feedback P3</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+		*{font-family: Nunito, Roboto, Helvetica, sans serif; font-size: 14px; letter-spacing: 0.3px;}
+		body{padding: 0 10em 5em 10em;}
+		h1{font-size: 130%; font-weight: 100; text-align: left; color: #5D6D7E; margin: 2em 0;}
+		h2{font-size: 115%; font-weight: 100; text-align: left; color: #5D6D7E; }
+		ol{list-style-type: lower-alpha; }
+		ol li {margin-bottom: 0.5em;}
+		li.azul {color: #00008B; font-style: italic; font-family: Georgia, serif; padding-top: 0.1em; margin-top: 1em; border-top: 1px blue solid }
+		pre{text-align: left; border: 1px solid black;}
+		code {color:blue; font-family: consolas; }
+		code.block {display:block; margin-bottom: 1em;}
+		p.verde{color: green;}
+		span.rojo {color: red;}
+	</style>
+</head>
+
+<body>
+<!--https://www.jesustovar.es/veteasabertu/etiquetas-pre-code-samp-kbd-y-var-para-mostrar-codigo-en-html-->
+<h1>(4) Realizar las siguientes consultas</h1>
+<ol>
+	<li class="azul">Mostrar el nombre de cada plato y la última fecha en la que ha sido solicitado.</li>
+	<code class="block">
+		SELECT</br>
+			p.Codigo_Plato, p.plato, Max(c.Fecha) AS Ultima_Fecha</br>
+		FROM</br>
+		   PLATO AS p INNER JOIN (COMANDA AS c INNER JOIN COMANDA_PLATOS AS cp ON c.Id_Comanda = cp.Id_Comanda) </br>
+		   ON p.Codigo_Plato = cp.Codigo_Plato</br>
+		GROUP BY</br> 
+		   p.Codigo_Plato, p.Plato;
+	</code>
+	<p>...con USING </p>
+	<code class="block">
+	SELECT p.plato AS 'Nombre del Plato', MAX(c.fecha) AS 'Última Comanda' </br>
+	FROM COMANDA AS c</br>
+	JOIN COMANDA_PLATOS AS cp USING (id_comanda)</br>
+	JOIN PLATO AS p USING (codigo_Plato)</br>
+	GROUP BY p.plato;</br>
+	</code>
+	</br>
+	<li class="azul">Ordenar el listado por tipo de plato.</li>
+
+	<code class="block">
+		SELECT </br> 
+			p.codigo_Plato, p.plato, t.tipo_de_plato, Max(c.Fecha) AS Ultima_Fecha</br> 
+		FROM </br> 
+			TIPO_PLATOS AS t INNER JOIN </br> 
+			(PLATO AS p INNER JOIN (COMANDA AS c INNER JOIN COMANDA_PLATOS AS cp </br> 
+			ON c.Id_Comanda = cp.Id_Comanda) </br> 
+			ON p.codigo_Plato = cp.codigo_Plato) ON t.id_Tipo = p.id_tipo</br> 
+		GROUP BY </br> 
+			p.codigo_Plato, p.Plato, t.tipo_de_plato</br> 
+		ORDER BY t.tipo_de_plato;
+	</code>	
+	
+	<li class="azul">Hacer una lista del coste de cada plato versus su PVP tomado en cuenta el coste de sus ingredientes. 
+	<br/>Ordenar el listado por el beneficio aportado</li>
+	
+	<code class="block">
+		SELECT </br> 
+		   p.Codigo_Plato, </br> 
+		   p.Plato, </br> 
+		   Sum(p.PVP) AS PrecioVenta, </br> 
+		   Sum((i.Cantidad_Bruta)*(a.Precio_Compra)) AS Coste, </br> 
+		   Sum(p.PVP) - Sum((i.Cantidad_Bruta)*(a.Precio_Compra)) AS Beneficio</br> 
+		FROM (PLATO AS p INNER JOIN INGREDIENTES_PLATO AS i </br> 
+		   ON p.Codigo_Plato = i.Codigo_Plato) </br> 
+		   INNER JOIN PRODUCTO AS a ON i.Codigo_Producto = a.Codigo_Producto</br> 
+		GROUP BY p.Codigo_Plato, p.Plato</br> 
+		ORDER BY Sum(p.PVP) - Sum((i.Cantidad_Bruta)*(a.Precio_Compra)) DESC;</br> 
+	</code>		
+	
+	<li class="azul">Mostrar un listado de los proveedores de bebidas a quienes se les haya comprado en los últimos dos meses.</li>
+	
+	<p>La categoría <b>Bebidas</b> tiene el código 3</p>
+
+	<code class="block">
+		SELECT </br> 
+			p.NIF, p.Empresa, c.fecha</br> 
+		FROM</br> 
+			proveedor AS p INNER JOIN compras_producto AS c ON p.NIF = c.NIF</br> 
+		WHERE </br> 
+			p.idCategoria = 3 AND</br> 
+			c.fecha BETWEEN DATE_SUB(curdate(), INTERVAL 2 month) AND curdate();
+	</code>		
+	
+	<li class="azul">Inventar una consulta que contenga un group by + having + agregación(count).</p>
+	<li class="azul">Inventar una consulta que contenga una combinación externa + ordenación (order by).</p>
+
+	<li class="azul">Realizar una consulta de UNIÓN para mostrar los platos y productos solicitados en cada comanda</li>
+	
+	<code class="block">
+		SELECT </br>
+			c.*, </br>
+			cp.Codigo_Plato, </br>
+			p.Plato AS consumo, </br>
+			cp.cantidad, </br>
+			cp.PVP, </br>
+			cp.IVA, </br>
+			cp.cantidad * (cp.PVP * (1+ CP.IVA)) AS total</br>
+		FROM </br>
+			PLATO AS p INNER JOIN (COMANDA AS c INNER JOIN COMANDA_PLATOS AS cp ON c.Id_Comanda = cp.Id_Comanda)</br> 
+			ON p.Codigo_Plato = cp.Codigo_Plato</br>
+		UNION SELECT </br>
+			c.*, </br>
+			ce.Codigo_producto, </br>
+			p.nomProducto AS consumo, </br>
+			ce.cantidad, </br>
+			ce.PVP, </br>
+			ce.IVA, </br>
+			ce.cantidad * (ce.PVP * (1+ ce.IVA)) AS total</br>
+		FROM </br>
+			PRODUCTO AS p INNER JOIN (COMANDA AS c INNER JOIN comanda_elaborados AS ce ON c.Id_Comanda = ce.Id_Comanda) </br>
+			ON p.Codigo_producto = ce.Codigo_producto;
+	</code>
+	
+	<li class="azul">Mostrar los <b>productos</b> que contengan <b>alérgenos</b>.</li>
+	
+	<code class="block">
+		CREATE VIEW p3_4h AS</br>
+		SELECT </br>
+			c.*, </br>
+			cp.Codigo_Plato... etc. </br>
+	</code>
+	
+</ol>
+<h1>(5) Realizar las siguientes modificaciones en los datos insertados </h1>
+<ol>
+	<li class="azul"><b>Generar</b> automáticamente <b>una nueva tabla</b> resumen a partir de la comanda de elaborados que indique: <br/>
+	<b>Código del producto, Nombre, unidad, total cantidad y PVP promedio</b>.</li>
+
+	<p><a target="_blank" href="https://dev.mysql.com/doc/refman/8.0/en/create-table-select.html"><mark>enlace</mark></a></p>
+
+		<code class="block">	
+			CREATE TABLE p3_5a  </br>
+			SELECT </br>
+			  p.Codigo_Producto,</br>
+			  p.nomProducto AS nombre,</br>
+			  p.unidad AS unidad,</br>
+			  sum(ce.Cantidad) AS cantidad,</br>
+			  avg(ce.PVP) AS pvp_promedio </br>
+			FROM </br>
+			producto AS p JOIN comanda_elaborados AS ce</br>
+			ON p.Codigo_Producto = ce.codigo_producto</br>
+			GROUP BY </br>
+			  p.Codigo_Producto, p.nomProducto, p.unidad</br>
+		</code>		
+		
+	<li class="azul">Eliminar los proveedores a los cuales nunca se les haya comprado productos.</li>	
+		<code class="block">	
+			SET SQL_SAFE_UPDATES=0;	</br>
+			DELETE FROM PROVEEDOR WHERE NIF NOT IN (SELECT NIF FROM compras_producto);</br>
+			SET SQL_SAFE_UPDATES=1;</br>
+		</code>		
+
+		
+</ol>	
