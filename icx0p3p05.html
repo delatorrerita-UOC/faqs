@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<title>Feedback P5</title>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+		*{font-family: Nunito, Roboto, Helvetica, sans serif; font-size: 14px; letter-spacing: 0.3px;}
+		body{padding: 0 7em 5em 7em;}
+		h1{font-size: 130%; 
+			font-weight: 200; 
+			text-align: left; 
+			color: #5D6D7E; 
+			margin: 2em 0;
+			text-indent: -30px;
+			padding-left: 35px
+		}
+		
+		h2{font-size: 115%; font-weight: 100; text-align: left; color: #5D6D7E; }
+		ol{list-style-type: lower-alpha; }
+		ol li {margin-bottom: 0.5em;}
+		li.azul {color: #00008B; font-style: italic; font-family: Georgia, serif; line-height: 1.5; padding-top: 0.1em; margin-top: 1em; border-top: 1px blue solid }
+		pre{text-align: left; border: 1px solid black;}
+		code {color:blue; font-family: consolas; }
+		blockquote,
+		blockquote a{margin-top: 0; margin-bottom: 0; font-family: consolas; color:blue;}
+		blockquote a{color: purple}
+		p.verde{color: green;}
+		span.rojo {color: red;}
+		span.claro {color: SteelBlue;}
+		table, th, td {
+ 			border: 1px solid gray;
+			vertical-align: top;
+		}
+
+	</style>
+</head>
+
+<body>
+
+<h1>(4)&nbsp;&nbsp;Realizar los siguientes <b>PROCEDIMIENTOS ALMACENADOS</b> (Stored Procedures) y <b>FUNCIONES</b> (Function) y anotar la
+sentencia SQL y su salida en un documento</h1>
+<ol>
+	<li class="azul">Crear un <b>PROCEDIMIENTO ALMACENADO</b> que calcule y actualice el precio de compra de cada producto basado en el último precio de compra.</li>
+
+	<p>La instrucción dentro del <i>Stored Procedure</i> sigue la misma lógica que la del <br>Producto 3, Punto a: <em>Mostrar el nombre de cada plato y la última fecha en la que ha sido solicitado</em>.</p>
+	<p>En vez de buscar la última fecha de compra de cada plato, se debía buscar el último precio de compra de cada producto.<br>
+	Y en lugar de un <code>SELECT</code> usamos un <code>UPDATE</code>, porque se nos pide actualizar.</p>
+
+	<blockquote>
+	DELIMITER $$<br>
+	CREATE PROCEDURE ActualizaPrecioCompra()<br>
+	BEGIN<br>
+		<blockquote>
+		UPDATE producto AS p<br>
+		INNER JOIN compras_producto AS c<br>
+		ON p.codigo_producto = c.codigo_producto<br>
+		SET p.precio_compra = c.precio<br>
+		WHERE c.fecha = <br>
+		<blockquote>
+		(SELECT MAX(fecha) FROM compras_producto WHERE codigo_producto = c.codigo_producto);<br>
+		</blockquote></blockquote>
+	END$$<br>
+	DELIMITER ;<br>
+	</blockquote>
+
+	<li class="azul">Crear un <b>PROCEDIMIENTO ALMACENADO</b> que genere automáticamente las donaciones del día.<br>
+	La política de la Rosticería es donar a comedores sociales aquellos productos con fecha de caducidad igual a la de la fecha en curso.</li>
+	
+	<blockquote>
+	DELIMITER $$<br>
+	CREATE PROCEDURE GeneraDonaciones()<br>
+	BEGIN<br>
+	<blockquote>
+		DECLARE numeroProductosCaducados INT;<br>
+		<span class="claro">
+		-- revisamos si hay productos caducados y los guardamos en la variable numeroProductosCaducados<br>
+		</span>
+		SELECT COUNT(*) FROM compras_producto WHERE caducidad = curdate() INTO numeroProductosCaducados;<br>
+		<br>
+		IF numeroProductosCaducados > 0 THEN<br>
+			<blockquote>
+			<span class="claro">
+			-- primero insertamos en el lado 1 de la relacion<br>
+			</span>
+			  INSERT INTO donaciones (fecha) VALUE (curdate());<br>
+			<span class="claro">  
+			  -- generamos el detalle de las donaciones (lado varios de la relación)<br>
+			</span>  
+			INSERT INTO detalle_donacion ( codigo_producto, fecha, cantidad, observaciones )<br>
+			SELECT c.codigo_producto, c.fecha, c.cantidad, 'generado desde Store Procedure'<br>
+			FROM compras_producto AS c WHERE caducidad = curdate();  <br>      
+			</blockquote>
+		END IF;<br>
+	</blockquote>
+	END$$<br>	
+	DELIMITER ;	</br>
+	</blockquote>
+
+	<li class="azul">Crear una <b>FUNCIÓN</b> que calcule el stock actual de un producto, basado en las comandas y donaciones.</li>
+	
+	<p>Para crear esta función debemos tener en cuenta diferentes tablas en las que se guardan las cantidades compradas/vendidas de los productos, ya sean ingredientes elaborados o preparados.</p>
+	
+	<blockquote>
+	DELIMITER $$<br>
+	CREATE FUNCTION stock(id_producto INT) RETURNS decimal(11,2)<br>
+	BEGIN<br>
+		<blockquote>
+		DECLARE stock_inicial decimal(11,2);<br>
+		DECLARE cantidad_comprada decimal(11,2);<br>
+		DECLARE donaciones decimal(11,2);<br>
+		DECLARE cantidad_vendida decimal(11,2);<br>
+		DECLARE stock_final decimal(11,2) DEFAULT 0;<br>
+		<span class="claro">-- revisamos si el producto existe.</span><br>
+			IF EXISTS(SELECT codigo_producto FROM producto WHERE codigo_producto = id_producto) THEN<br>
+				<blockquote>
+				<span class="claro">-- guardamos el stock inicial</span><br>
+				SELECT <a target='_blank' href='https://www.w3schools.com/sql/func_mysql_coalesce.asp'>COALESCE(stock, 0)</a> 
+				FROM producto WHERE codigo_producto = id_producto INTO stock_inicial;<br>
+				<span class="claro">-- sumamos la cantidad comprada</span><br>
+				SELECT COALESCE(SUM(cantidad), 0) FROM compras_producto WHERE codigo_producto = id_producto INTO cantidad_comprada;<br>
+				<span class="claro">-- sumamos las donaciones</span><br>
+				SELECT COALESCE(SUM(cantidad), 0) FROM detalle_donacion WHERE codigo_producto = id_producto INTO donaciones;<br>
+				<span class="claro">-- revisamos el tipo de producto que es</span><br>
+				IF EXISTS(SELECT codigo_producto FROM elaborado WHERE codigo_producto = id_producto) THEN<br>
+				<blockquote>
+					<span class="claro">-- es un elaborado. Revisamos comanda elaborados</span><br>
+					SELECT COALESCE(SUM(cantidad), 0) FROM comanda_elaborados <br>
+					WHERE codigo_producto = id_producto INTO cantidad_vendida;<br>
+				</blockquote>ELSE<br><blockquote>
+					<span class="claro">-- es un ingrediente.</span><br> 
+					IF EXISTS (SELECT i.Codigo_Producto, coalesce(c.cantidad * i.Cant_Bruta, 0)<br> 
+					FROM comanda_platos AS c INNER JOIN ingredientes_plato AS i<br>
+					ON c.Codigo_Plato = i.Codigo_Plato WHERE i.Codigo_Producto = id_producto) THEN<br>
+					<blockquote>
+						<span class="claro">-- Multiplicamos el nro de platos por la cantidad del producto en un plato</span><br>
+						SELECT i.Codigo_Producto, coalesce(c.cantidad * i.Cant_Bruta, 0) <br>
+						FROM comanda_platos AS c INNER JOIN ingredientes_plato AS i<br>
+						ON c.Codigo_Plato = i.Codigo_Plato<br> 
+						WHERE i.Codigo_Producto = id_producto INTO cantidad_vendida;<br>
+					</blockquote>ELSE<br><blockquote>
+						SET cantidad_vendida = 0;<br>
+					</blockquote>
+					END IF;<br></blockquote>
+				END IF;<br></blockquote>
+			END IF;<br>
+			<span class="claro">-- calculamos el stock final</span><br>
+			SET stock_final = stock_inicial + cantidad_comprada - donaciones - cantidad_vendida;<br>
+			RETURN stock_final;<br>
+			</blockquote>
+	END $$<br>
+	DELIMITER ;<br>
+</blockquote>	
+	
+	<li class="azul"><mark>Inventar</mark> una <b>FUNCIÓN</b> que brinde algún tipo de información sobre las ventas del día.</li>
+
+	<li class="azul"><mark>Inventar</mark> un <b>PROCEDIMIENTO ALMACENADO</b> que tenga un parámetro de entrada (<b>IN</b>).</li>
+	
+</ol>	
+<h1>(5)&nbsp;&nbsp;Realizar los siguientes <b>DISPARADORES</b> (triggers) y anotar la sentencia SQL y su salida en un documento:</h1>
+<ol>
+	<li class="azul">Crear <b>dos disparadores</b>  que, al realizar el registro en comanda de un producto o plato, verifique que la cantidad solicitada sea mayor a cero.</li>
+	<p>Los dos triggers se pueden llamar igual. Hacen lo mismo aunque en diferentes tablas.</p>
+	
+	<blockquote>
+	DELIMITER $$<br>
+	CREATE TRIGGER verifica_cantidad<br> 
+	BEFORE INSERT ON <span class='rojo'>comanda_platos</span> FOR EACH ROW<br>
+	BEGIN<br>
+	<blockquote>
+	DECLARE CANTIDAD_INVALIDA CONDITION FOR SQLSTATE '45000';<br>
+	IF (NEW.cantidad <=0) THEN<br>
+		<blockquote>
+		<a target='_blank' href='https://dev.mysql.com/doc/refman/8.0/en/signal.html'>SIGNAL SQLSTATE </a>
+		'45000' SET MESSAGE_TEXT = 'Indique una cantidad mayor o igual a 0';<br>
+		</blockquote>
+	END IF;<br>
+	</blockquote>
+	END $$<br>
+	DELIMITER ;<br>
+	</blockquote>
+	<hr>
+	<blockquote>
+	DELIMITER $$<br>
+	CREATE TRIGGER verifica_cantidad<br> 
+	BEFORE INSERT ON <span class='rojo'>comanda_elaborados</span> FOR EACH ROW<br>
+	BEGIN<br>
+	<blockquote>
+	DECLARE CANTIDAD_INVALIDA CONDITION FOR SQLSTATE '45000';<br>
+	IF (NEW.cantidad <=0) THEN<br>
+		<blockquote>
+		<a target='_blank' href='https://dev.mysql.com/doc/refman/8.0/en/signal.html'>SIGNAL SQLSTATE </a>
+		'45000' SET MESSAGE_TEXT = 'Indique una cantidad mayor o igual a 0';<br>
+		</blockquote>
+	END IF;<br>
+	</blockquote>
+	END $$<br>
+	DELIMITER ;<br>
+	</blockquote>
+
+	
+	<li class="azul">Crear <b>un disparador que</b>, al realizar la compra de un producto, copie su código, tipo (ingrediente o elaborado), cantidad y unidad en una nueva tabla (<span class='rojo'>esta tabla deberá ser creada por vosotros</span>).</li>
+	
+	<p>Primero creamos la tabla</p>
+	
+	<blockquote>
+	CREATE TABLE historico_compras (<br>
+	<blockquote>
+		codigo_producto int,<br>
+		tipo enum('ingrediente','elaborado'),<br>
+		cantidad decimal(11,2),<br>
+		unidad enum('Kilogramos','Litros','Unidades')<br>
+	</blockquote>
+	);<br>
+	</blockquote>
+	
+	<p>Creamos el trigger</p>
+	
+	<blockquote>
+	DELIMITER $$<br>
+	CREATE  TRIGGER genera_historico<br> 
+	AFTER INSERT ON <span class='rojo'>compras_producto</span> FOR EACH ROW<br> 
+	BEGIN<br>
+	<blockquote>
+	DECLARE tipo varchar(11);<br>
+	DECLARE unidad varchar(11);<br>
+
+	<span class="claro">-- Guardamos el valor de unidad en la variable unidad</span><br>
+	SELECT p.unidad FROM producto AS p WHERE p.codigo_producto = NEW.codigo_producto INTO unidad;<br>
+	<span class="claro">-- Buscamos el producto en la tabla elaborado para saber si es un elaborado, de lo contrario es un ingrediente.</span><br>
+	IF EXISTS (SELECT e.codigo_producto FROM elaborado AS e WHERE e.codigo_producto = NEW.codigo_producto) THEN<br>
+	<blockquote>
+		SET tipo = 'Elaborado';<br>
+	</blockquote>ELSE<br><blockquote>
+		SET tipo = 'Ingrediente';<br>
+	</blockquote>
+	END IF;<br>
+	</blockquote>
+	INSERT INTO historico_compras VALUES (NEW.codigo_producto, unidad, NEW.cantidad, tipo);<br>
+	END $$<br>
+	DELIMITER ;<br>
+	</blockquote>
+	
+	<li class="azul"><mark>Inventar y justificar</mark> un disparador.</li>
+
+
+</ol>
